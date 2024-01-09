@@ -8,6 +8,7 @@ import {
   alist as alistApi,
   deleteFolder,
   delay,
+  Strm,
 } from "@/utils";
 import qbittorrent from "@/utils/qbittorrent";
 import { readdirSync } from "fs";
@@ -148,6 +149,8 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
           )
         )
       );
+
+      await new Strm().makeStrm(lastTask.savePath.substring(1));
 
       deleteFolder(generatePath);
 

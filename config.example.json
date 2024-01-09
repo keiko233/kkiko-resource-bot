@@ -18,5 +18,9 @@
   },
   "users": [
     114514
-  ]
+  ],
+  "strm": {
+    "path": "srtm",
+    "baseURL": "http://localhost:5244/d/"
+  }
 }

@@ -19,6 +19,10 @@ export interface Config {
     rootPath: string;
   };
   users: number[];
+  strm: {
+    path: string;
+    baseURL: string;
+  };
 }
 
 const file = readFileSync("config.json", "utf-8");
