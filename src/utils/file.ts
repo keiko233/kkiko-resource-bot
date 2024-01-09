@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { consola } from "./logger";
 
-const LOGTAG = "[regex/Rename]";
+const LOGTAG = "[utils/file]";
 
 export const createFolderRecursive = (folderPath: string): void => {
   const folders = folderPath.split("/");
@@ -39,4 +39,23 @@ export const deleteFolder = (folderPath: string) => {
   } else {
     consola.error(LOGTAG, `Folder does not exist: ${folderPath}`);
   }
+};
+
+export const traverseDirectory = async (directory: string) => {
+  const files: string[] = [];
+
+  const dirContent = fs.readdirSync(directory);
+
+  for (let file of dirContent) {
+    const filepath = `${directory}/${file}`;
+    const status = fs.statSync(filepath);
+
+    if (status.isDirectory()) {
+      files.push(...(await traverseDirectory(filepath)));
+    } else {
+      files.push(filepath);
+    }
+  }
+
+  return files;
 };
