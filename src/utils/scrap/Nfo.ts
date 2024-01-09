@@ -1,4 +1,4 @@
-import { task } from "@/model";
+import { getTaskById } from "@/model";
 import {
   TVGetDetailsResponse,
   TVAppendToResponse,
@@ -148,7 +148,7 @@ export class Nfo {
 
   public async getInfo(id: number) {
     log("query database: " + id);
-    this.data = await task.getTaskById(id);
+    this.data = await getTaskById(id);
 
     this.tmdbDetails = JSON.parse(this.data.tmdbDetails);
 
