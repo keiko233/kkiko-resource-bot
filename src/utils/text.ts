@@ -95,7 +95,7 @@ export namespace Rss {
   }
 }
 
-export const rssRegex = (rss: Rss.Channel): Rss.RegexRss | Rss.RegexRss[] => {
+export const rssRegex = (rss: Rss.Channel): Rss.RegexRss[] => {
   const mikan = /Mikan Project/;
   const acgrip = /ACG.RIP/;
 
@@ -114,7 +114,7 @@ export const rssRegex = (rss: Rss.Channel): Rss.RegexRss | Rss.RegexRss[] => {
         return generateRss(element);
       });
     } else {
-      return generateRss(rss.channel.item);
+      return [generateRss(rss.channel.item)];
     }
   } else {
     const generateRss = (element: Rss.Item) => {
@@ -131,7 +131,7 @@ export const rssRegex = (rss: Rss.Channel): Rss.RegexRss | Rss.RegexRss[] => {
         return generateRss(element);
       });
     } else {
-      return generateRss(rss.channel.item);
+      return [generateRss(rss.channel.item)];
     }
   }
 };
