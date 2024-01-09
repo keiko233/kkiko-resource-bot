@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../../data/database.sqlite"
+}
+
+model Task {
+  id                 Int      @id @default(autoincrement())
+  requestUser        String
+  requestUserId      BigInt?
+  status             String
+  message            String
+  url                String
+  name               String?
+  savePath           String?
+  hash               String?
+  tmdbId             BigInt?
+  tmdbDetails        String?
+  tmdbSeasonDetails  String?
+  tmdbEpisodeDetails String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Rss {
+  id            Int      @id @default(autoincrement())
+  requestUser   String
+  requestUserId BigInt?
+  name          String
+  url           String
+  regex         String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

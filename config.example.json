@@ -1,0 +1,22 @@
+{
+  "token": "",
+  "qbitorrent": {
+    "baseUrl": "http://localhost:8889/",
+    "username": "admin",
+    "password": ""
+  },
+  "savepath": "/downloads",
+  "tmdb": {
+    "api_key": "",
+    "access_token": ""
+  },
+  "alist": {
+    "baseURL": "",
+    "username": "",
+    "password": ".",
+    "rootPath": ""
+  },
+  "users": [
+    114514
+  ]
+}

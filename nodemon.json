@@ -1,0 +1,13 @@
+{
+  "verbose": false,
+  "debug": false,
+  "exec": "tsx src/index.ts",
+  "ignore": [
+    "node_modules"
+  ],
+  "watch": [
+    "./src"
+  ],
+  "ext": "ts mts js mjs",
+  "inspect": true
+}

@@ -1,0 +1,16 @@
+version: "2"
+services:
+  qbittorrentee:
+    image: superng6/qbittorrentee
+    container_name: qbittorrentee
+    environment:
+      - TZ=Asia/Shanghai
+      - WEBUIPORT=8889
+    volumes:
+      - ./config:/config
+      - ./downloads:/downloads
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+      - 8889:8889
+    restart: unless-stopped
