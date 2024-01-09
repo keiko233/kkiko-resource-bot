@@ -37,27 +37,101 @@ export const getFileExtension = (filename: string): string => {
   return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 };
 
-export const rssRegex = (rss: {
-  channel: {
-    item: {
-      title: { _text: string };
-      pubDate: { _text: string };
-      link: { _text: string };
-      enclosure: { _attributes: { url: string } };
-    }[];
-  };
-}): {
-  title: string;
-  pubDate: string;
-  link: string;
-  url: string;
-}[] => {
-  return rss.channel.item.map((element) => {
-    return {
-      title: element.title._text,
-      pubDate: element.pubDate._text,
-      link: element.link._text,
-      url: element.enclosure._attributes.url,
+export namespace Rss {
+  export interface Channel {
+    channel: {
+      item: Item | Item[];
+      title: {
+        _text: string;
+      };
+      description: {
+        _text: string;
+      };
+      link: {
+        _text: string;
+      };
+      ttl: {
+        _text: string;
+      };
     };
-  });
+  }
+
+  export interface Item {
+    title: {
+      _text: string;
+    };
+    pubDate: {
+      _text: string;
+    };
+    link: {
+      _text: string;
+    };
+    enclosure: {
+      _attributes: {
+        url: string;
+      };
+    };
+    torrent: {
+      _attributes: {
+        xmlns: string;
+      };
+      link: {
+        _text: string;
+      };
+      contentLength: {
+        _text: string;
+      };
+      pubDate: {
+        _text: string;
+      };
+    };
+  }
+
+  export interface RegexRss {
+    title: string;
+    pubDate: string;
+    link: string;
+    url: string;
+  }
+}
+
+export const rssRegex = (rss: Rss.Channel): Rss.RegexRss | Rss.RegexRss[] => {
+  const mikan = /Mikan Project/;
+  const acgrip = /ACG.RIP/;
+
+  if (mikan.test(rss.channel.title._text)) {
+    const generateRss = (element: Rss.Item) => {
+      return {
+        title: element.title._text,
+        pubDate: element.torrent.pubDate._text,
+        link: element.torrent.link._text,
+        url: element.enclosure._attributes.url,
+      };
+    };
+
+    if (rss.channel.item instanceof Array) {
+      return rss.channel.item.map((element) => {
+        return generateRss(element);
+      });
+    } else {
+      return generateRss(rss.channel.item);
+    }
+  } else {
+    const generateRss = (element: Rss.Item) => {
+      return {
+        title: element.title._text,
+        pubDate: element.pubDate._text,
+        link: element.link._text,
+        url: element.enclosure._attributes.url,
+      };
+    };
+
+    if (rss.channel.item instanceof Array) {
+      return rss.channel.item.map((element) => {
+        return generateRss(element);
+      });
+    } else {
+      return generateRss(rss.channel.item);
+    }
+  }
 };
