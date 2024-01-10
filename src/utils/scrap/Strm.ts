@@ -10,9 +10,11 @@ const log = (msg: string, ...args: any) => {
 };
 
 export const makeStrm = (videoPath: string) => {
-  const url = `${config.strm.baseURL}${videoPath}`;
+  const alistPath = config.alist.rootPath;
 
-  const filePath = `${config.strm.path}${config.alist.rootPath}/${videoPath.replace(
+  const url = `${config.strm.baseURL}${alistPath.substring(1)}/${videoPath}`;
+
+  const filePath = `${config.strm.path}${alistPath}/${videoPath.replace(
     /\.(mkv|mp4|mov)$/gi,
     ".strm"
   )}`;
