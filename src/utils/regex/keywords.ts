@@ -61,7 +61,9 @@ const gjy = (name: string): Keywords.RegexResult => {
   const split = name.split(" ");
 
   const getName = () => {
-    return split[1];
+    const matchd = name.match(/\[.*?\]\s(.*?)\s-\s\d+/);
+
+    return matchd[1] || "";
   };
 
   const getSeason = () => {
