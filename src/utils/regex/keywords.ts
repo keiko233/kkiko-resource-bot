@@ -94,13 +94,9 @@ const lolihouse = (name: string) => {
   const seasonRegex = /Season\s+(\d+)|(\d+)rd|(\d+)nd|S(\d+)/i;
 
   const getName = () => {
-    const nameMatch = name.match(/\[[^\]]+\]\s+([^[]+?)\s+-\s+\d+/);
+    const matchd = name.match(/\[.*?\]\s(.*?)\s-\s\d+/);
 
-    if (nameMatch && nameMatch[1]) {
-      return nameMatch[1].replace(seasonRegex, "");
-    } else {
-      return "";
-    }
+    return matchd[1] || "";
   };
 
   const getEpisode = () => {
@@ -135,6 +131,48 @@ const lolihouse = (name: string) => {
   };
 };
 
+const ani = (name: string) => {
+  const getName = () => {
+    const nameMatch = name.match(/\[.*?\]\s(.*?)\s\[.*?\]\s-\s\d+/);
+
+    if (nameMatch && nameMatch[1]) {
+      return nameMatch[1]
+    } else {
+      return "";
+    }
+  };
+
+  const getEpisode = () => {
+    const result = name.match(/-\s+(\d+)/);
+
+    if (result && result[1]) {
+      return Number(result[1]);
+    } else {
+      return 1;
+    }
+  };
+
+  const getSeason = () => {
+    const seasonMatch = name.match(/Season\s+(\d+)|(\d+)rd|(\d+)nd/i);
+
+    if (seasonMatch) {
+      let season = seasonMatch[1] || seasonMatch[2] || seasonMatch[3];
+
+      if (season) {
+        return Number(season);
+      }
+    }
+
+    return 1;
+  };
+
+  return {
+    regexName: getName(),
+    season: getSeason(),
+    episode: getEpisode(),
+  };
+};
+
 export const keywords: Keywords.Lists = {
   sakurato: {
     keys: ["[Sakurato]", "Sakurato"],
@@ -147,5 +185,9 @@ export const keywords: Keywords.Lists = {
   lolihouse: {
     keys: ["LoliHouse"],
     type: lolihouse,
+  },
+  ani: {
+    keys: ["ANi"],
+    type: ani,
   },
 };
