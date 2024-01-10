@@ -133,7 +133,7 @@ const lolihouse = (name: string) => {
 
 const ani = (name: string) => {
   const getName = () => {
-    const nameMatch = name.match(/\[.*?\]\s(.*?)\s\[.*?\]\s-\s\d+/);
+    const nameMatch = name.match(/\[.*?\]\s(.*?)\s.*?-\s\d+/);
 
     if (nameMatch && nameMatch[1]) {
       return nameMatch[1]
