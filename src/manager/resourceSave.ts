@@ -80,7 +80,7 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
       const nfo = new Nfo();
       await nfo.run(lastTask, rename.tvName);
 
-      await qbittorrent.removeTorrent(lastTask.hash, false);
+      await qbittorrent.removeTorrent(lastTask.hash, true);
 
       await uploadTmpDir(`tmp/task-${lastTask.id}`);
 
