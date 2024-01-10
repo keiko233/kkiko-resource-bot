@@ -5,52 +5,88 @@ import { bot } from "../common";
 import { resourceSave } from "@/manager/resourceSave";
 import { createTask, getTaskById } from "@/model";
 import parseTorrent from "parse-torrent";
+import type MagnetUri from ".pnpm/@types+magnet-uri@5.1.5/node_modules/@types/magnet-uri/index.d.ts";
 
 export const download = async (ctx: CommandContext) => {
-  const event = new BotDownload();
+  const event = new BotDownload(ctx);
 
-  await event.run(ctx);
+  const splitd = ctx.update.message.text.split(" ");
+
+  if (splitd.length != 2) {
+    const message = [
+      "输入有误，请携带一个参数",
+      "",
+      "用法:",
+      "/download <url>",
+    ];
+
+    ctx.reply(array2text(message));
+
+    return;
+  }
+
+  const url = splitd[1];
+
+  if (!isLink(url)) {
+    ctx.reply("输入有误，请输入正确的链接");
+
+    return;
+  }
+
+  await event.run(url);
 };
+
+namespace BotDownload {
+  export interface MagnetUriInstance extends MagnetUri.Instance {
+    files: {
+      path: string;
+      name: string;
+      length: number;
+      offset: number;
+    }[];
+  }
+}
 
 class BotDownload {
   private extract: Extract;
   private randomId: number;
+  private ctx: CommandContext;
+  private url: string;
+  private buffer: Buffer;
+  private torrentInfo: BotDownload.MagnetUriInstance;
 
-  constructor() {
-    this.randomId = Math.random();
+  constructor(ctx: CommandContext) {
+    this.ctx = ctx;
+    this.randomId = new Date().getTime();
   }
 
-  public async run(ctx: CommandContext) {
-    const splitd = ctx.update.message.text.split(" ");
+  public async run(url: string) {
+    const ctx = this.ctx;
+    this.url = url;
 
-    if (splitd.length != 2) {
-      const message = [
-        "输入有误，请携带一个参数",
-        "",
-        "用法:",
-        "/download <url>",
-      ];
+    this.buffer = await downloadFileToBuffer(url);
 
-      ctx.reply(array2text(message));
-
-      return;
-    }
-
-    const url = splitd[1];
-
-    if (!isLink(url)) {
-      ctx.reply("输入有误，请输入正确的链接");
-
-      return;
-    }
-
-    const buffer = await downloadFileToBuffer(url);
-
-    if (!buffer) {
+    if (!this.buffer) {
       ctx.reply("种子下载失败，请检查连接是否正确");
     }
 
-    const torrentInfo = parseTorrent(buffer);
+    this.torrentInfo = parseTorrent(
+      this.buffer
+    ) as BotDownload.MagnetUriInstance;
+
+    this.download();
+
+    // if (torrentInfo.files.length > 1) {
+    //   ctx.reply("检测到合集，即将进行合集下载");
+    // } else {
+    //   this.download(torrentInfo);
+    // }
+  }
+
+  private download() {
+    const ctx = this.ctx;
+    const url = this.url;
+    const torrentInfo = this.torrentInfo;
 
     ctx.reply(
       array2text([
@@ -66,9 +102,9 @@ class BotDownload {
       ])
     );
 
-    this.extract = new Extract();
-
     bot.action(`download-next-${this.randomId}`, async (ctx) => {
+      this.extract = new Extract();
+
       await this.extract.regex(torrentInfo.name as string);
 
       ctx.editMessageText(
@@ -110,7 +146,7 @@ class BotDownload {
         tmdbEpisodeDetails: JSON.stringify(this.extract.tmdbEpisodeDetails),
       });
 
-      resourceSave(task.id, buffer);
+      resourceSave(task.id, this.buffer);
 
       let oldMessage = task.message;
 

@@ -5,9 +5,19 @@ import {
   TVSeasonsGetDetailsEpisode,
   TVSeasonsGetDetailsResponse,
 } from "tmdb-js-node";
-import { Keywords, keywords } from "./keywords";
-import { toNumber } from "chinese-number-format";
+import { keywords } from "./keywords";
 import tmdb from "../tmdb";
+
+export const keyworkCheck = (name: string) => {
+  for (let key in keywords) {
+    let item = keywords[key];
+    if (item.keys.some((k: string) => name.includes(k))) {
+      return item.type(name);
+    }
+  }
+
+  return keywords.sakurato.type(name);
+};
 
 export class Extract {
   public regexName: string;
@@ -20,7 +30,6 @@ export class Extract {
   public tmdbEpisodeDetails: TVSeasonsGetDetailsEpisode;
 
   public async regex(name: string) {
-
     await this.regexUniversal(name);
 
     return {
@@ -33,21 +42,8 @@ export class Extract {
     };
   }
 
-  private keyworkCheck(name: string) {
-    for (let key in keywords) {
-      let item = keywords[key];
-      if (item.keys.some((k: string) => name.includes(k))) {
-        return item.type(name);
-      }
-    }
-
-    return keywords.sakurato.type(name);
-  }
-
-  private async regexUniversal(
-    name: string
-  ) {
-    const { regexName, episode, season } = this.keyworkCheck(name);
+  private async regexUniversal(name: string) {
+    const { regexName, episode, season } = keyworkCheck(name);
 
     this.regexName = regexName;
     this.season = season;

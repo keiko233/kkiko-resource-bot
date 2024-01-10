@@ -1,6 +1,6 @@
-import { copyFileSync, writeFileSync } from "fs";
+import { writeFileSync } from "fs";
 import { config } from "../config";
-import { createFolderRecursive, traverseDirectory } from "../file";
+import { createFolderRecursive } from "../file";
 import { consola } from "../logger";
 
 const LOGTAG = "[scrap/Strm]";
@@ -9,69 +9,25 @@ const log = (msg: string, ...args: any) => {
   consola.info(`${LOGTAG} ${msg}`, ...args);
 };
 
-export class Strm {
-  private files: string[];
-  private alistRootPath = config.alist.rootPath.substring(1);
+export const makeStrm = (videoPath: string) => {
+  const url = `${config.strm.baseURL}${videoPath}`;
 
-  private getStrmPath(file: string) {
-    const strm = file.split("/");
+  const filePath = `${config.strm.path}/${videoPath.replace(
+    /\.(mkv|mp4|mov)$/gi,
+    ".strm"
+  )}`;
 
-    strm.shift();
-    strm.shift();
+  const createFolder = () => {
+    const dirs = filePath.split("/");
 
-    return `${config.strm.path}/${this.alistRootPath}/${strm.join("/")}`;
-  }
+    dirs.pop();
 
-  public async makeStrm(dir: string) {
-    this.files = await traverseDirectory(dir);
+    createFolderRecursive(dirs.join("/"));
+  };
 
-    this.files.forEach((file) => {
-      const strm = file.split("/");
+  createFolder();
 
-      strm.shift();
-      strm.shift();
-      strm.pop();
+  log(`writeStrm: ${filePath}`);
 
-      createFolderRecursive(
-        `${config.strm.path}/${this.alistRootPath}/${strm.join("/")}`
-      );
-
-      if (/\.(mkv|mp4|mov)$/.test(file)) {
-        console.log("video", file);
-
-        const getUrl = () => {
-          const strm = file.split("/");
-
-          strm.shift();
-          strm.shift();
-
-          return `${config.strm.baseURL}${this.alistRootPath}/${strm.join(
-            "/"
-          )}`;
-        };
-
-        const writeStrmFile = (text: string) => {
-          const filePathSplit = this.getStrmPath(file).split(".");
-
-          filePathSplit.pop();
-
-          filePathSplit.push("strm");
-
-          const finallyFilePath = filePathSplit.join(".");
-
-          log(`writeStrm: ${finallyFilePath}`);
-
-          writeFileSync(finallyFilePath, text);
-        };
-
-        writeStrmFile(getUrl());
-      } else {
-        const target = this.getStrmPath(file);
-
-        log(`copyFile: ${target}`);
-
-        copyFileSync(file, target);
-      }
-    });
-  }
-}
+  writeFileSync(filePath, url);
+};

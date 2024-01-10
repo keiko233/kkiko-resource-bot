@@ -7,12 +7,16 @@ import {
 } from "tmdb-js-node";
 import {
   array2text,
+  config,
   consola,
   createFolderRecursive,
   formatNumber,
   getFileExtension,
+  alist as alistApi,
+  keyworkCheck,
 } from "..";
-import { renameSync } from "fs";
+import { readdirSync, renameSync } from "fs";
+import { generateTvName, getVideoFiles } from "./utils";
 
 const LOGTAG = "[regex/Rename]";
 
@@ -25,67 +29,88 @@ export class Rename {
   public tmdbSeasonDetails: TVSeasonsGetDetailsResponse<
     TVSeasonsAppendToResponse[]
   >;
-  public tmdbEpisodeDetails: TVSeasonsGetDetailsEpisode;
+  public tmdbEpisodeDetails?: TVSeasonsGetDetailsEpisode;
   public tvName: string;
   public savePath: string;
   public filePath: string;
 
-  constructor(
-    filePath: string,
-    tmdbDetails: TVGetDetailsResponse<TVAppendToResponse[]>,
-    tmdbSeasonDetails: TVSeasonsGetDetailsResponse<TVSeasonsAppendToResponse[]>,
-    tmdbEpisodeDetails: TVSeasonsGetDetailsEpisode
-  ) {
-    this.filePath = filePath.substring(1);
+  constructor(task: {
+    id: number;
+    requestUser: string;
+    requestUserId: bigint;
+    status: string;
+    message: string;
+    url: string;
+    name: string;
+    savePath: string;
+    hash: string;
+    tmdbId: bigint;
+    tmdbDetails: string;
+    tmdbSeasonDetails: string;
+    tmdbEpisodeDetails: string;
+  }) {
+    this.filePath = task.savePath.substring(1);
 
-    this.tmdbDetails = tmdbDetails;
-    this.tmdbSeasonDetails = tmdbSeasonDetails;
-    this.tmdbEpisodeDetails = tmdbEpisodeDetails;
+    this.tmdbDetails = JSON.parse(task.tmdbDetails);
+    this.tmdbSeasonDetails = JSON.parse(task.tmdbSeasonDetails);
+    this.tmdbEpisodeDetails = JSON.parse(task.tmdbEpisodeDetails);
 
-    const date = new Date(tmdbDetails.first_air_date);
+    const date = new Date(this.tmdbDetails.first_air_date);
 
-    this.tvName = `${tmdbDetails.name} (${date.getFullYear()})`;
+    this.tvName = `${this.tmdbDetails.name} (${date.getFullYear()})`;
 
-    const folderPath = filePath.split("/");
+    const folderPath = task.savePath.split("/");
 
     folderPath.pop();
 
-    this.savePath = `${folderPath.join("/")}/${this.tvName}/Season ${
-      this.tmdbEpisodeDetails.season_number
-    }`.substring(1);
+    this.savePath = `${this.tvName}/Season ${this.tmdbEpisodeDetails.season_number}`;
   }
 
-  public async getFileName() {
-    const season = formatNumber(this.tmdbEpisodeDetails.season_number);
+  private async upload() {
+    const videoLists = getVideoFiles(this.filePath);
 
-    const episode = formatNumber(this.tmdbEpisodeDetails.episode_number);
+    const alist = await alistApi;
 
-    const name = [
-      this.tmdbDetails.name,
-      "-",
-      `S${season}E${episode}`,
-      "-",
-      `${this.tmdbEpisodeDetails.name}.${getFileExtension(this.filePath)}`,
-    ];
+    const season = formatNumber(this.tmdbSeasonDetails.season_number);
 
-    return array2text(name, "space");
-  }
+    const taskLists = [];
 
-  private async rename() {
-    const fileName = await this.getFileName();
+    videoLists.forEach(async (list) => {
+      const { episode } = keyworkCheck(list.split("/").at(-1));
 
-    const path = `${this.savePath}/${fileName}`;
+      const getTmdbEpisodeName = () => {
+        let result: TVSeasonsGetDetailsEpisode;
 
-    renameSync(this.filePath, path);
+        this.tmdbSeasonDetails.episodes.forEach((item) => {
+          if (item.episode_number == episode) {
+            result = item;
+          }
+        });
 
-    log(`Move ${this.filePath} Rename to ${path}`);
+        return result.name;
+      };
+
+      const name = generateTvName(
+        this.tmdbDetails.name,
+        season,
+        formatNumber(episode),
+        getTmdbEpisodeName(),
+        getFileExtension(list)
+      );
+
+      const uploadPath = `${config.alist.rootPath}/${this.savePath}/${name}`;
+
+      log("Uploading: " + name);
+
+      taskLists.push(alist.fs.upload(list, uploadPath, true));
+    });
+
+    log("Upload Promise: ", await Promise.all(taskLists));
   }
 
   public async run() {
-    log("Toggle Rrename: " + this.tvName);
+    log("Toggle Rename & Upload: " + this.tvName);
 
-    createFolderRecursive(this.savePath);
-
-    await this.rename();
+    await this.upload();
   }
 }

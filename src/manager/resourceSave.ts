@@ -5,14 +5,11 @@ import {
   config,
   consola,
   format,
-  alist as alistApi,
   deleteFolder,
   delay,
-  Strm,
 } from "@/utils";
 import qbittorrent from "@/utils/qbittorrent";
-import { readdirSync } from "fs";
-import path from "path";
+import { uploadTmpDir } from "@/utils/upload";
 
 const LOGTAG = "[manager/resourceSave]";
 
@@ -73,86 +70,21 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
         status: "successfully-downloaded",
       });
 
-      await callback("即将进行重命名");
+      await callback("准备上传视频并重命名");
 
-      await qbittorrent.removeTorrent(task.hash, false);
-
-      const rename = new Rename(
-        `${lastTask.savePath}/${lastTask.name}`,
-        JSON.parse(task.tmdbDetails),
-        JSON.parse(task.tmdbSeasonDetails),
-        JSON.parse(task.tmdbEpisodeDetails)
-      );
-
+      const rename = new Rename(lastTask);
       await rename.run();
-
-      await callback("重命名完成");
-
-      const nfo = new Nfo();
 
       await callback("正在生成元信息");
 
-      await nfo.getInfo(lastTask.id);
+      const nfo = new Nfo();
+      await nfo.run(lastTask, rename.tvName);
 
-      const generatePath = `${lastTask.savePath}/${rename.tvName}`.substring(1);
+      await qbittorrent.removeTorrent(lastTask.hash, false);
 
-      nfo.generateTvshow(generatePath);
+      await uploadTmpDir(`tmp/task-${lastTask.id}`);
 
-      await Promise.all(nfo.saveTvImages(generatePath));
-
-      nfo.generateTvshowSeason(generatePath);
-
-      await Promise.all(
-        nfo.saveTvSeasonImages(generatePath, await rename.getFileName())
-      );
-
-      const alist = await alistApi;
-
-      const makeUploadTasks = (
-        folderPath: string,
-        remoteFolderPath: string
-      ) => {
-        const lists = [];
-
-        const files = readdirSync(folderPath, { withFileTypes: true });
-
-        files.forEach((file) => {
-          const filePath = path.join(folderPath, file.name);
-
-          if (file.isDirectory()) {
-            lists.push(
-              ...makeUploadTasks(
-                filePath,
-                path.join(remoteFolderPath, file.name)
-              )
-            );
-          } else {
-            const remoteFilePath = path.join(remoteFolderPath, file.name);
-
-            log(`upload ${filePath}`);
-
-            lists.push(alist.fs.upload(filePath, remoteFilePath, true));
-          }
-        });
-
-        return lists;
-      };
-
-      await callback("执行上传文件");
-
-      log(
-        "上传完成",
-        await Promise.all(
-          makeUploadTasks(
-            generatePath,
-            `${config.alist.rootPath}/${rename.tvName}`
-          )
-        )
-      );
-
-      await new Strm().makeStrm(lastTask.savePath.substring(1));
-
-      deleteFolder(generatePath);
+      deleteFolder(`tmp/task-${lastTask.id}`);
 
       await updateTaskById(task.id, {
         status: "complated",

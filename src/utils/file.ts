@@ -41,7 +41,7 @@ export const deleteFolder = (folderPath: string) => {
   }
 };
 
-export const traverseDirectory = async (directory: string) => {
+export const traverseDirectory = (directory: string) => {
   const files: string[] = [];
 
   const dirContent = fs.readdirSync(directory);
@@ -51,7 +51,7 @@ export const traverseDirectory = async (directory: string) => {
     const status = fs.statSync(filepath);
 
     if (status.isDirectory()) {
-      files.push(...(await traverseDirectory(filepath)));
+      files.push(...(traverseDirectory(filepath)));
     } else {
       files.push(filepath);
     }

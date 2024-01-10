@@ -15,8 +15,12 @@ import tmdb from "../tmdb";
 import { writeFileSync } from "fs";
 import { js2xml, Element } from "xml-js";
 import { downloadFileToBuffer } from "../buffer";
-import { formatNumber } from "../text";
+import { formatNumber, getFileExtension } from "../text";
 import { consola } from "../logger";
+import { createFolderRecursive } from "../file";
+import { generateTvName, getVideoFiles } from "./utils";
+import { keyworkCheck } from "../regex";
+import { makeStrm } from "./Strm";
 
 const LOGTAG = "[scrap/Nfo]";
 
@@ -48,9 +52,10 @@ export class Nfo {
     tmdbDetails: string;
     tmdbSeasonDetails: string;
     tmdbEpisodeDetails: string;
-    createdAt: Date;
-    updatedAt: Date;
   };
+  public generatePath: string;
+  public videoLists: string[];
+  public tvName: string;
 
   private generateActor() {
     return this.aggregateCredits.cast.map((item) => {
@@ -146,10 +151,7 @@ export class Nfo {
     return `https://image.tmdb.org/t/p/original${path}`;
   }
 
-  public async getInfo(id: number) {
-    log("query database: " + id);
-    this.data = await getTaskById(id);
-
+  public async getInfo() {
     this.tmdbDetails = JSON.parse(this.data.tmdbDetails);
 
     this.tmdbSeasonDetails = JSON.parse(this.data.tmdbSeasonDetails);
@@ -174,7 +176,7 @@ export class Nfo {
     this.contentRatings = await tmdb.v3.tv.getContentRatings(tmdbId);
   }
 
-  public generateTvshow(path: string) {
+  public generateTvshow() {
     const info = {
       _declaration: {
         _attributes: {
@@ -291,7 +293,7 @@ export class Nfo {
     };
 
     writeFileSync(
-      `${path}/tvshow.nfo`,
+      `${this.generatePath}/tvshow.nfo`,
       js2xml(info as Element, {
         compact: true,
         spaces: 4,
@@ -308,47 +310,49 @@ export class Nfo {
 
     log("writeFile: " + filepath);
 
-    // return new Promise(async (resolve, reject) => {
-    //   writeFile(
-    //     filepath,
-    //     await downloadFileToBuffer(this.generateImageUrl(url)),
-    //     function (err) {
-    //       if (err) {
-    //         reject(err);
-    //       } else {
-    //         resolve("success");
-    //       }
-    //     }
-    //   );
-    // });
-
     return writeFileSync(
       filepath,
       await downloadFileToBuffer(this.generateImageUrl(url))
     );
   }
 
-  public saveTvImages(path: string) {
+  public saveTvImages() {
     const tasks = [];
 
     tasks.push(
-      this.writeFile(this.images.posters[0].file_path, path, "poster")
+      this.writeFile(
+        this.images.posters[0].file_path,
+        this.generatePath,
+        "poster"
+      )
     );
 
     tasks.push(
-      this.writeFile(this.images.posters[0].file_path, path, "folder")
+      this.writeFile(
+        this.images.posters[0].file_path,
+        this.generatePath,
+        "folder"
+      )
     );
 
-    // @ts-ignore
-    tasks.push(this.writeFile(this.images.logos[0].file_path, path, "logo"));
+    tasks.push(
+      // @ts-ignore
+      this.writeFile(this.images.logos[0].file_path, this.generatePath, "logo")
+    );
 
-    tasks.push(this.writeFile(this.tmdbDetails.backdrop_path, path, "fanart"));
+    tasks.push(
+      this.writeFile(
+        this.tmdbDetails.backdrop_path,
+        this.generatePath,
+        "fanart"
+      )
+    );
 
     this.tmdbDetails.seasons.forEach((item) => {
       tasks.push(
         this.writeFile(
           item.poster_path,
-          path,
+          this.generatePath,
           `season${formatNumber(item.season_number)}-poster`
         )
       );
@@ -357,7 +361,7 @@ export class Nfo {
     return tasks;
   }
 
-  public generateTvshowSeason(path: string) {
+  public generateTvshowSeason() {
     const info = {
       _declaration: {
         _attributes: {
@@ -407,12 +411,14 @@ export class Nfo {
       },
     };
 
-    const filepath = `${path}/Season ${this.tmdbSeasonDetails.season_number}/season.nfo`;
+    const filepath = `${this.generatePath}/Season ${this.tmdbSeasonDetails.season_number}`;
+
+    createFolderRecursive(filepath);
 
     log("writeFile: " + filepath);
 
     writeFileSync(
-      filepath,
+      `${filepath}/season.nfo`,
       js2xml(info as Element, {
         compact: true,
         spaces: 4,
@@ -420,35 +426,110 @@ export class Nfo {
     );
   }
 
-  public saveTvSeasonImages(path: string, filename: string) {
-    path = `${path}/Season ${this.tmdbSeasonDetails.season_number}`;
+  public saveTvSeasonInfo() {
+    const path = `${this.generatePath}/Season ${this.tmdbSeasonDetails.season_number}`;
 
     const tasks = [];
 
-    tasks.push(
-      this.writeFile(this.images.posters[0].file_path, path, "folder")
-    );
+    const generateTask = (filename: string) => {
+      tasks.push(
+        this.writeFile(this.images.posters[0].file_path, path, "folder")
+      );
 
-    this.tmdbDetails.seasons.forEach((item) => {
-      if (item.season_number == this.tmdbSeasonDetails.season_number) {
-        tasks.push(
-          this.writeFile(
-            item.poster_path,
-            path,
-            `season${formatNumber(item.season_number)}`
-          )
-        );
-      }
-    });
+      this.tmdbDetails.seasons.forEach((item) => {
+        if (item.season_number == this.tmdbSeasonDetails.season_number) {
+          tasks.push(
+            this.writeFile(
+              item.poster_path,
+              path,
+              `season${formatNumber(item.season_number)}`
+            )
+          );
+        }
+      });
 
-    this.tmdbSeasonDetails.episodes.forEach((item) => {
-      if (item.episode_number == this.tmdbEpisodeDetails.episode_number) {
-        tasks.push(
-          this.writeFile(item.still_path, path, filename.split(".")[0])
-        );
-      }
+      this.tmdbSeasonDetails.episodes.forEach((item) => {
+        if (item.episode_number == this.tmdbEpisodeDetails.episode_number) {
+          tasks.push(
+            this.writeFile(item.still_path, path, filename.split(".")[0])
+          );
+        }
+      });
+    };
+
+    this.videoLists = getVideoFiles(this.data.savePath.substring(1));
+
+    this.videoLists.forEach((item) => {
+      const originName = item.split("/").at(-1);
+
+      const { episode } = keyworkCheck(originName);
+
+      const getTmdbEpisodeName = () => {
+        let result: TVSeasonsGetDetailsEpisode;
+
+        this.tmdbSeasonDetails.episodes.forEach((item) => {
+          if (item.episode_number == episode) {
+            result = item;
+          }
+        });
+
+        return result.name;
+      };
+
+      const name = generateTvName(
+        this.tmdbDetails.name,
+        formatNumber(this.tmdbSeasonDetails.season_number),
+        formatNumber(episode),
+        getTmdbEpisodeName(),
+        getFileExtension(item)
+      );
+
+      makeStrm(
+        `${this.tvName}/Season ${this.tmdbSeasonDetails.season_number}/${name}`
+      );
+
+      generateTask(name);
     });
 
     return tasks;
+  }
+
+  public async run(
+    task: {
+      id: number;
+      requestUser: string;
+      requestUserId: bigint;
+      status: string;
+      message: string;
+      url: string;
+      name: string;
+      savePath: string;
+      hash: string;
+      tmdbId: bigint;
+      tmdbDetails: string;
+      tmdbSeasonDetails: string;
+      tmdbEpisodeDetails: string;
+    },
+    tvName: string
+  ) {
+    this.tvName = tvName;
+
+    this.data = task;
+
+    this.generatePath = `tmp/task-${this.data.id}/${tvName}`;
+
+    log(this.generatePath);
+
+    await this.getInfo();
+
+    createFolderRecursive(this.generatePath);
+
+    this.generateTvshow();
+
+    await Promise.all(this.saveTvImages());
+
+    this.generateTvshowSeason();
+
+    await Promise.all(this.saveTvSeasonInfo());
   }
 }
