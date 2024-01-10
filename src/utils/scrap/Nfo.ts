@@ -144,7 +144,13 @@ export class Nfo {
   }
 
   private generateMpaa() {
-    return this.contentRatings.results[0].rating;
+    const results = this.contentRatings.results;
+
+    if (results.length > 0) {
+      return results[0].rating;
+    } else {
+      return "none";
+    }
   }
 
   private generateImageUrl(path: string) {
