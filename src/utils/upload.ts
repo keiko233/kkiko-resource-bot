@@ -13,7 +13,7 @@ export const uploadTmpDir = async (rootDir: string) => {
 
     consola.info("[utils/upload]", file);
 
-    copyFileSync(file, `${config.strm.path}/${uploadPath}`);
+    copyFileSync(file, `${config.strm.path}${config.alist.rootPath}/${uploadPath}`);
 
     tasks.push(
       alist.fs.upload(file, `${config.alist.rootPath}/${uploadPath}`, true)
