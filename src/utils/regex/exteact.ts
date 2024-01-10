@@ -5,7 +5,7 @@ import {
   TVSeasonsGetDetailsEpisode,
   TVSeasonsGetDetailsResponse,
 } from "tmdb-js-node";
-import { keywords } from "./keywords";
+import { Keywords, keywords } from "./keywords";
 import { toNumber } from "chinese-number-format";
 import tmdb from "../tmdb";
 
@@ -20,9 +20,8 @@ export class Extract {
   public tmdbEpisodeDetails: TVSeasonsGetDetailsEpisode;
 
   public async regex(name: string) {
-    const type = this.keyworkCheck(name);
 
-    await this.regexUniversal(name, type);
+    await this.regexUniversal(name);
 
     return {
       regexName: this.regexName,
@@ -38,58 +37,21 @@ export class Extract {
     for (let key in keywords) {
       let item = keywords[key];
       if (item.keys.some((k: string) => name.includes(k))) {
-        return item.type;
+        return item.type(name);
       }
     }
+
+    return keywords.sakurato.type(name);
   }
 
-  private async regexUniversal(name: string, type: number = 0) {
-    switch (type) {
-      case 0:
-      default: {
-        const nameMatch = name.match(/\]\s(.*?)\s\[/);
+  private async regexUniversal(
+    name: string
+  ) {
+    const { regexName, episode, season } = this.keyworkCheck(name);
 
-        if (nameMatch && nameMatch[1]) {
-          this.regexName = nameMatch[1];
-        }
-
-        const seasonMatch = name.match(/Season\s+(\d+)/i);
-
-        const rdMatch = name.match(/\b\d+rd\b/);
-
-        if (seasonMatch) {
-          this.season = Number(seasonMatch[1]);
-        } else if (rdMatch) {
-          this.season = Number(rdMatch[0].match(/\d+/));
-        } else {
-          this.season = 1;
-        }
-
-        const episodeMatch = name.match(/\[(\d+)\]/);
-
-        if (episodeMatch) {
-          this.episode = parseInt(episodeMatch[1]);
-        }
-
-        break;
-      }
-
-      case 1: {
-        const split = name.split(" ");
-
-        this.regexName = split[1];
-        this.season = toNumber(split[2].replace(/第/g, "").replace(/季/g, ""));
-
-        split.forEach((item) => {
-          // @ts-ignore
-          if (Number(item) == item) {
-            this.episode = Number(item);
-          }
-        });
-
-        break;
-      }
-    }
+    this.regexName = regexName;
+    this.season = season;
+    this.episode = episode;
 
     await this.searchFromTMDB();
   }
