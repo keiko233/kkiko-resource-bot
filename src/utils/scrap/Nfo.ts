@@ -102,21 +102,27 @@ export class Nfo {
   }
 
   private generateThumb() {
-    const result: any[] = [
-      {
-        _attributes: {
-          aspect: "poster",
-        },
-        _text: this.generateImageUrl(this.images.posters[0].file_path),
-      },
-      {
+    const result: any[] = [];
+
+    // @ts-ignore
+    if (this.images.logos.length > 0) {
+      result.push({
         _attributes: {
           aspect: "logo",
         },
         // @ts-ignore
         _text: this.generateImageUrl(this.images.logos[0].file_path),
-      },
-    ];
+      });
+    }
+
+    if (this.images.posters.length > 0) {
+      result.push({
+        _attributes: {
+          aspect: "poster",
+        },
+        _text: this.generateImageUrl(this.images.posters[0].file_path),
+      });
+    }
 
     this.tmdbDetails.seasons.forEach((item) => {
       result.push({
@@ -325,26 +331,35 @@ export class Nfo {
   public saveTvImages() {
     const tasks = [];
 
-    tasks.push(
-      this.writeFile(
-        this.images.posters[0].file_path,
-        this.generatePath,
-        "poster"
-      )
-    );
+    if (this.images.posters.length > 0) {
+      tasks.push(
+        this.writeFile(
+          this.images.posters[0].file_path,
+          this.generatePath,
+          "poster"
+        )
+      );
 
-    tasks.push(
-      this.writeFile(
-        this.images.posters[0].file_path,
-        this.generatePath,
-        "folder"
-      )
-    );
+      tasks.push(
+        this.writeFile(
+          this.images.posters[0].file_path,
+          this.generatePath,
+          "folder"
+        )
+      );
+    }
 
-    tasks.push(
-      // @ts-ignore
-      this.writeFile(this.images.logos[0].file_path, this.generatePath, "logo")
-    );
+    // @ts-ignore
+    if (this.images.logos.length > 0) {
+      tasks.push(
+        this.writeFile(
+          // @ts-ignore
+          this.images.logos[0].file_path,
+          this.generatePath,
+          "logo"
+        )
+      );
+    }
 
     tasks.push(
       this.writeFile(
@@ -642,9 +657,11 @@ export class Nfo {
     const tasks = [];
 
     const generateTask = (filename: string) => {
-      tasks.push(
-        this.writeFile(this.images.posters[0].file_path, path, "folder")
-      );
+      if (this.images.posters.length > 0) {
+        tasks.push(
+          this.writeFile(this.images.posters[0].file_path, path, "folder")
+        );
+      }
 
       this.tmdbDetails.seasons.forEach((item) => {
         if (item.season_number == this.tmdbSeasonDetails.season_number) {
