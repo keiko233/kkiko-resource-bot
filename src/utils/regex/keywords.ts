@@ -161,6 +161,12 @@ const ani = (name: string) => {
       if (season) {
         return Number(season);
       }
+    } else {
+      const chineseSeason = name.match(/第(\S+?)季/);
+
+      if (chineseSeason) {
+        return toNumber(chineseSeason[0].replace(/第/g, "").replace(/季/g, ""));
+      }
     }
 
     return 1;
