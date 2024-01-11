@@ -61,7 +61,7 @@ const gjy = (name: string): Keywords.RegexResult => {
   const split = name.split(" ");
 
   const getName = () => {
-    const matchd = name.match(/\[.*?\]\s(.*?)\s-\s\d+/);
+    const matchd = name.match(/\[.*?\]\s(.*?)\s(?!季.*).*?-\s\d+/);
 
     return matchd[1] || "";
   };
