@@ -719,7 +719,7 @@ export class Nfo {
         `${this.tvName}/Season ${this.tmdbSeasonDetails.season_number}/${name}`
       );
 
-      this.generateEpisodeNfo(this.tmdbSeasonDetails.season_number, name);
+      this.generateEpisodeNfo(episode, name);
 
       generateTask(name);
     });
