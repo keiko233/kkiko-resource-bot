@@ -314,6 +314,10 @@ export class Nfo {
   }
 
   private async writeFile(url: string, path: string, name: string) {
+    if (!url) {
+      return;
+    }
+
     function getFileExtension(filename: string) {
       return filename.split(".").pop();
     }
