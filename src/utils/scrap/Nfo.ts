@@ -628,7 +628,7 @@ export class Nfo {
     const filepath = `${this.generatePath}/Season ${this.tmdbSeasonDetails.season_number}`;
 
     writeFileSync(
-      `${filepath}/${name.split(".")[0]}.nfo`,
+      `${filepath}/${name.replace(/\.(mkv|mp4|mov)$/gi, "")}.nfo`,
       js2xml(nfo as Element, {
         compact: true,
         spaces: 4,
