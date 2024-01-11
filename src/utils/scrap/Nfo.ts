@@ -432,6 +432,211 @@ export class Nfo {
     );
   }
 
+  private generateEpisodeNfo(episode_number: number, name: string) {
+    let info: TVSeasonsGetDetailsEpisode
+
+    this.tmdbSeasonDetails.episodes.forEach((episode) => {
+      if (episode.episode_number == episode_number) {
+        info = episode
+      }
+    })
+
+    const nfo = {
+      _declaration: {
+        _attributes: {
+          version: "1.0",
+          encoding: "utf-8",
+          standalone: "yes",
+        },
+      },
+      episodedetails: {
+        plot: {
+          _cdata: info.overview
+        },
+        outline: {},
+        lockdata: {
+          _text: "false",
+        },
+        dateadded: {
+          _text: info.air_date,
+        },
+        title: {
+          _text: info.name,
+        },
+        originaltitle: {
+          _text: this.tmdbDetails.original_name,
+        },
+        actor: this.generateActor(),
+        rating: {
+          _text: "none",
+        },
+        year: {
+          _text: new Date(info.air_date).getFullYear(),
+        },
+        sorttitle: {
+          _text: info.name,
+        },
+        tmdbid: {
+          _text: this.data.tmdbId,
+        },
+        runtime: {
+          _text: info.runtime
+        },
+        studio: this.generateStudio(),
+        uniqueid: [
+          {
+            _attributes: {
+              type: "tmdb",
+            },
+            _text: this.data.tmdbId,
+          },
+        ],
+        episode: {
+          _text: episode_number,
+        },
+        season: {
+          _text: this.tmdbSeasonDetails.season_number,
+        },
+        aired: {
+          _text: info.air_date,
+        },
+        // fileinfo: {
+        //   streamdetails: {
+        //     video: {
+        //       codec: {
+        //         _text: "hevc",
+        //       },
+        //       micodec: {
+        //         _text: "hevc",
+        //       },
+        //       bitrate: {
+        //         _text: "6217648",
+        //       },
+        //       width: {
+        //         _text: "1920",
+        //       },
+        //       height: {
+        //         _text: "1080",
+        //       },
+        //       aspect: {
+        //         _text: "16:9",
+        //       },
+        //       aspectratio: {
+        //         _text: "16:9",
+        //       },
+        //       framerate: {
+        //         _text: "23.976025",
+        //       },
+        //       scantype: {
+        //         _text: "progressive",
+        //       },
+        //       default: {
+        //         _text: "True",
+        //       },
+        //       forced: {
+        //         _text: "False",
+        //       },
+        //       duration: {
+        //         _text: "24",
+        //       },
+        //       durationinseconds: {
+        //         _text: "1469",
+        //       },
+        //     },
+        //     audio: {
+        //       codec: {
+        //         _text: "flac",
+        //       },
+        //       micodec: {
+        //         _text: "flac",
+        //       },
+        //       language: {
+        //         _text: "jpn",
+        //       },
+        //       scantype: {
+        //         _text: "progressive",
+        //       },
+        //       channels: {
+        //         _text: "2",
+        //       },
+        //       samplingrate: {
+        //         _text: "48000",
+        //       },
+        //       default: {
+        //         _text: "True",
+        //       },
+        //       forced: {
+        //         _text: "False",
+        //       },
+        //     },
+        //     subtitle: [
+        //       {
+        //         codec: {
+        //           _text: "ass",
+        //         },
+        //         micodec: {
+        //           _text: "ass",
+        //         },
+        //         scantype: {
+        //           _text: "progressive",
+        //         },
+        //         default: {
+        //           _text: "False",
+        //         },
+        //         forced: {
+        //           _text: "False",
+        //         },
+        //       },
+        //       {
+        //         codec: {
+        //           _text: "ass",
+        //         },
+        //         micodec: {
+        //           _text: "ass",
+        //         },
+        //         language: {
+        //           _text: "srd",
+        //         },
+        //         scantype: {
+        //           _text: "progressive",
+        //         },
+        //         default: {
+        //           _text: "False",
+        //         },
+        //         forced: {
+        //           _text: "False",
+        //         },
+        //       },
+        //     ],
+        //   },
+        // },
+        showtitle: {
+          _text: info.name,
+        },
+        userrating: {
+          _text: "0.0",
+        },
+        thumb: {
+          _text:
+          this.generateImageUrl(info.still_path),
+        },
+        epbookmark: {},
+        code: {},
+        user_note: {},
+      },
+    };
+
+    const filepath = `${this.generatePath}/Season ${this.tmdbSeasonDetails.season_number}`;
+
+    writeFileSync(
+      `${filepath}/${name.split(".")[0]}.nfo`,
+      js2xml(nfo as Element, {
+        compact: true,
+        spaces: 4,
+      })
+    );
+  }
+
   public saveTvSeasonInfo() {
     const path = `${this.generatePath}/Season ${this.tmdbSeasonDetails.season_number}`;
 
@@ -493,6 +698,8 @@ export class Nfo {
       makeStrm(
         `${this.tvName}/Season ${this.tmdbSeasonDetails.season_number}/${name}`
       );
+
+      this.generateEpisodeNfo(this.tmdbSeasonDetails.season_number, name)
 
       generateTask(name);
     });
