@@ -433,13 +433,13 @@ export class Nfo {
   }
 
   private generateEpisodeNfo(episode_number: number, name: string) {
-    let info: TVSeasonsGetDetailsEpisode
+    let info: TVSeasonsGetDetailsEpisode;
 
     this.tmdbSeasonDetails.episodes.forEach((episode) => {
       if (episode.episode_number == episode_number) {
-        info = episode
+        info = episode;
       }
-    })
+    });
 
     const nfo = {
       _declaration: {
@@ -451,7 +451,7 @@ export class Nfo {
       },
       episodedetails: {
         plot: {
-          _cdata: info.overview
+          _cdata: info.overview,
         },
         outline: {},
         lockdata: {
@@ -480,7 +480,7 @@ export class Nfo {
           _text: this.data.tmdbId,
         },
         runtime: {
-          _text: info.runtime
+          _text: info.runtime,
         },
         studio: this.generateStudio(),
         uniqueid: [
@@ -617,8 +617,7 @@ export class Nfo {
           _text: "0.0",
         },
         thumb: {
-          _text:
-          this.generateImageUrl(info.still_path),
+          _text: this.generateImageUrl(info.still_path),
         },
         epbookmark: {},
         code: {},
@@ -662,7 +661,11 @@ export class Nfo {
       this.tmdbSeasonDetails.episodes.forEach((item) => {
         if (item.episode_number == this.tmdbEpisodeDetails.episode_number) {
           tasks.push(
-            this.writeFile(item.still_path, path, filename.split(".")[0])
+            this.writeFile(
+              item.still_path,
+              path,
+              filename.replace(/\.(mkv|mp4|mov)$/gi, "")
+            )
           );
         }
       });
@@ -699,7 +702,7 @@ export class Nfo {
         `${this.tvName}/Season ${this.tmdbSeasonDetails.season_number}/${name}`
       );
 
-      this.generateEpisodeNfo(this.tmdbSeasonDetails.season_number, name)
+      this.generateEpisodeNfo(this.tmdbSeasonDetails.season_number, name);
 
       generateTask(name);
     });
