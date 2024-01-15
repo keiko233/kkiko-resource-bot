@@ -133,10 +133,10 @@ const lolihouse = (name: string) => {
 
 const ani = (name: string) => {
   const getName = () => {
-    const nameMatch = name.match(/\[.*?\]\s(.*?)\s.*?-\s\d+/);
+    const nameMatch = name.match(/\[ANi\] (.*?) -/);
 
     if (nameMatch && nameMatch[1]) {
-      return nameMatch[1]
+      return nameMatch[1].replace(/第(\S+?)季/g, "")
     } else {
       return "";
     }
