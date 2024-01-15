@@ -9,6 +9,7 @@ export const help = (ctx: CommandContext) => {
     "/help 使用帮助",
     "/download 下载torrent",
     "/rss 添加rss订阅",
+    "/myrss 查看我的订阅",
   ];
 
   ctx.reply(array2text(helpMessage));

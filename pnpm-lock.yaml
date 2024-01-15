@@ -38,6 +38,9 @@ dependencies:
   consola:
     specifier: ^3.2.3
     version: 3.2.3
+  dayjs:
+    specifier: ^1.11.10
+    version: 1.11.10
   fast-xml-parser:
     specifier: ^4.3.2
     version: 4.3.2
@@ -647,6 +650,10 @@ packages:
   /crypto-hash@2.0.1:
     resolution: {integrity: sha512-t4mkp7Vh6MuCZRBf0XLzBOfhkH3nW6YEAotMDSjshVQ1GffCMGdPLSr7pKH0rdXY02jTjAZ7QW2apD0buaZXcQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dev: false
+
+  /dayjs@1.11.10:
+    resolution: {integrity: sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==}
     dev: false
 
   /debug@4.3.4(supports-color@5.5.0):

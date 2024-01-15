@@ -41,3 +41,11 @@ export const updateRssbyId = async (
     data,
   });
 };
+
+export const getRssByRequestUserId = async (requestUserId: number) => {
+  return await prisma.rss.findMany({
+    where: {
+      requestUserId,
+    },
+  });
+};
