@@ -96,7 +96,7 @@ const lolihouse = (name: string) => {
   const getName = () => {
     const matchd = name.match(/\[.*?\]\s(.*?)\s-\s\d+/);
 
-    return matchd[1] || "";
+    return matchd[1].replace(/\bs\d+|Season\s+\d+|\d+rd|\d+nd\b/i, "") || "";
   };
 
   const getEpisode = () => {
