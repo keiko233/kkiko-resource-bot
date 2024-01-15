@@ -1,58 +1,123 @@
 import { resourceSave } from "@/manager/resourceSave";
-import { createTask, getAllRss, getTaskByUrl } from "@/model";
-import { Extract, consola, downloadFileToBuffer, rssRegex } from "@/utils";
+import { createTask, getAllRss, getTaskById, updateRssbyId } from "@/model";
+import {
+  Extract,
+  Rss,
+  array2text,
+  consola,
+  downloadFileToBuffer,
+  rssRegex,
+} from "@/utils";
 import { ofetch } from "ofetch";
 import parseTorrent from "parse-torrent";
 import { ElementCompact, xml2js } from "xml-js";
+import { differenceBy } from "lodash";
+import { bot } from "@/bot/common";
 
 const LOGTAG = "[Cron/rss]";
+
+const toDownload = async (
+  item: Rss.RegexRss,
+  r: {
+    requestUser: string;
+    requestUserId: bigint;
+  }
+) => {
+  const buffer = await downloadFileToBuffer(item.url);
+
+  const torrentInfo = parseTorrent(buffer);
+
+  const extract = new Extract();
+
+  await extract.regex(torrentInfo.name as string);
+
+  const task = await createTask({
+    url: item.url,
+    requestUser: r.requestUser + "(RssToggle)",
+    requestUserId: Number(r.requestUserId),
+    status: "pending",
+    message: "任务已下发，执行中，等待回调",
+    hash: torrentInfo.infoHash,
+    name: torrentInfo.name as string,
+    tmdbId: extract.tmdbDetails.id,
+    tmdbDetails: JSON.stringify(extract.tmdbDetails),
+    tmdbSeasonDetails: JSON.stringify(extract.tmdbSeasonDetails),
+    tmdbEpisodeDetails: JSON.stringify(extract.tmdbEpisodeDetails),
+  });
+
+  resourceSave(task.id, buffer);
+
+  const message = (task: {
+    id: number;
+    status: string;
+    message: string;
+    name: string;
+    hash: string;
+  }) => {
+    return array2text([
+      "订阅的番剧更新啦~",
+      `标题: ${item.title}`,
+      "",
+      "任务详细：",
+      `ID: ${task.id}`,
+      `名称: ${task.name || "获取中"}`,
+      `Hash: ${task.hash || "获取中"}`,
+      `状态: ${task.status}`,
+      `消息: ${task.message}`,
+    ]);
+  };
+
+  const ctx = await bot.telegram.sendMessage(
+    Number(r.requestUserId),
+    message(task)
+  );
+
+  let oldMessage: string;
+
+  const interval = setInterval(async () => {
+    const newtask = await getTaskById(task.id);
+
+    if (oldMessage != newtask.message) {
+      oldMessage = newtask.message;
+
+      bot.telegram.editMessageText(
+        Number(r.requestUserId),
+        ctx.message_id,
+        "any",
+        message(newtask)
+      );
+    }
+
+    if (newtask.status == "complated") {
+      clearInterval(interval);
+    }
+  }, 3000);
+};
 
 export const rss = async () => {
   const allrss = await getAllRss();
 
   allrss.forEach(async (r) => {
+    consola.info(LOGTAG, `Check Rss: ${r.url} (ID: ${r.id})`);
+
     const response: ElementCompact = xml2js(await ofetch(r.url), {
       compact: true,
     });
 
     const rss = rssRegex(response.rss);
 
-    if (rss.length != JSON.parse(r.regex).length) {
-      rss.forEach(async (rssItem) => {
-        const result = await getTaskByUrl(rssItem.url);
+    const rssDifference = differenceBy(rss, JSON.parse(r.regex), "url");
 
-        if (result) {
-          consola.info(LOGTAG, `Downloaded (${rssItem.url})`);
-        } else {
-          consola.info(LOGTAG, `New Item (${rssItem.url})`);
+    if (rssDifference.length > 0) {
+      rssDifference.forEach(async (item) => {
+        consola.info(LOGTAG, `New Item: ${item.title} ${item.url}`);
 
-          const buffer = await downloadFileToBuffer(rssItem.url);
+        toDownload(item, r);
 
-          const torrentInfo = parseTorrent(buffer);
-
-          const extract = new Extract();
-
-          await extract.regex(torrentInfo.name as string);
-
-          const task = await createTask({
-            url: rssItem.url,
-            requestUser: r.requestUser,
-            requestUserId: Number(r.requestUserId),
-            status: "pending",
-            message: "任务已下发，执行中，等待回调",
-            hash: torrentInfo.infoHash,
-            name: torrentInfo.name as string,
-            tmdbId: extract.tmdbDetails.id,
-            tmdbDetails: JSON.stringify(extract.tmdbDetails),
-            tmdbSeasonDetails: JSON.stringify(extract.tmdbSeasonDetails),
-            tmdbEpisodeDetails: JSON.stringify(extract.tmdbEpisodeDetails),
-          });
-
-          resourceSave(task.id, buffer);
-        }
+        updateRssbyId(r.id, { regex: JSON.stringify(rss) });
       });
     } else {
-      consola.info(LOGTAG, `No Update (ID: ${r.id})`);
+      consola.info(LOGTAG, `No Update: ${r.url} (ID: ${r.id})`);
     }
   });
 };

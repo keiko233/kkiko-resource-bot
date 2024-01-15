@@ -23,3 +23,21 @@ export const createRss = async (data: {
     data,
   });
 };
+
+export const updateRssbyId = async (
+  id: number,
+  data: {
+    requestUser?: string;
+    requestUserId?: number;
+    name?: string;
+    url?: string;
+    regex?: string;
+  }
+) => {
+  return await prisma.rss.update({
+    where: {
+      id,
+    },
+    data,
+  });
+};

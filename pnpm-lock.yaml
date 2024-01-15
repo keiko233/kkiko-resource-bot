@@ -14,6 +14,9 @@ dependencies:
   '@types/koa':
     specifier: ^2.13.12
     version: 2.13.12
+  '@types/lodash':
+    specifier: ^4.14.202
+    version: 4.14.202
   '@types/mime':
     specifier: ^3.0.4
     version: 3.0.4
@@ -26,6 +29,9 @@ dependencies:
   '@types/parse-torrent':
     specifier: ^5.8.7
     version: 5.8.7
+  '@types/underscore':
+    specifier: ^1.11.15
+    version: 1.11.15
   chinese-number-format:
     specifier: ^1.0.2
     version: 1.0.2
@@ -44,6 +50,9 @@ dependencies:
   i18n-iso-countries:
     specifier: ^7.7.0
     version: 7.7.0
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   mime:
     specifier: ^4.0.1
     version: 4.0.1
@@ -74,6 +83,9 @@ dependencies:
   typescript:
     specifier: ^5.3.3
     version: 5.3.3
+  underscore:
+    specifier: ^1.13.6
+    version: 1.13.6
   xml-js:
     specifier: ^1.6.11
     version: 1.6.11
@@ -450,6 +462,10 @@ packages:
       '@types/node': 20.10.6
     dev: false
 
+  /@types/lodash@4.14.202:
+    resolution: {integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==}
+    dev: false
+
   /@types/magnet-uri@5.1.5:
     resolution: {integrity: sha512-SbBjlb1KGe38VfjRR+mwqztJd/4skhdKkRbIzPDhTy7IAeEAPZWIVSEkZw00Qr4ZZOGR3/ATJ20WWPBfrKHGdA==}
     dependencies:
@@ -509,6 +525,10 @@ packages:
       '@types/http-errors': 2.0.4
       '@types/mime': 3.0.4
       '@types/node': 20.10.6
+    dev: false
+
+  /@types/underscore@1.11.15:
+    resolution: {integrity: sha512-HP38xE+GuWGlbSRq9WrZkousaQ7dragtZCruBVMi0oX1migFZavZ3OROKHSkNp/9ouq82zrWtZpg18jFnVN96g==}
     dev: false
 
   /abbrev@1.1.1:
@@ -790,6 +810,10 @@ packages:
   /is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
+    dev: false
+
+  /lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
     dev: false
 
   /lru-cache@6.0.0:
@@ -1102,6 +1126,10 @@ packages:
 
   /undefsafe@2.0.5:
     resolution: {integrity: sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==}
+    dev: false
+
+  /underscore@1.13.6:
+    resolution: {integrity: sha512-+A5Sja4HP1M08MaXya7p5LvjuM7K6q/2EaC0+iovj/wOcMsTzMvDFbasi/oSapiwOlt252IqsKqPjCl7huKS0A==}
     dev: false
 
   /undici-types@5.26.5:
