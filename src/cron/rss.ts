@@ -98,7 +98,7 @@ export const rss = async () => {
   const allrss = await getAllRss();
 
   allrss.forEach(async (r) => {
-    consola.info(LOGTAG, `Check Rss: ${r.url} (ID: ${r.id})`);
+    consola.info(LOGTAG, `Check Rss: ${decodeURI(r.url)} (ID: ${r.id})`);
 
     const response: ElementCompact = xml2js(await ofetch(r.url), {
       compact: true,
@@ -110,14 +110,14 @@ export const rss = async () => {
 
     if (rssDifference.length > 0) {
       rssDifference.forEach(async (item) => {
-        consola.info(LOGTAG, `New Item: ${item.title} ${item.url}`);
+        consola.info(LOGTAG, `New Item: ${item.title} ${decodeURI(item.url)}`);
 
         toDownload(item, r);
 
         updateRssbyId(r.id, { regex: JSON.stringify(rss) });
       });
     } else {
-      consola.info(LOGTAG, `No Update: ${r.url} (ID: ${r.id})`);
+      consola.info(LOGTAG, `No Update: ${decodeURI(r.url)} (ID: ${r.id})`);
     }
   });
 };
