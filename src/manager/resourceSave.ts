@@ -60,10 +60,6 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
               torrent.totalDownloaded
             )} / ${format.size(torrent.totalSize)})`
           );
-
-          setTimeout(async () => {
-            await showStatus(progress);
-          }, 3000);
         }
       } else {
         const lastTask = await updateTaskById(task.id, {
@@ -92,6 +88,10 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
           message: "处理完成",
         });
       }
+
+      setTimeout(async () => {
+        await showStatus(progress);
+      }, 3000);
     } catch (err) {
       log(err);
 
