@@ -75,7 +75,7 @@ export class Rename {
 
     const taskLists = [];
 
-    videoLists.forEach(async (list) => {
+    for (const list of videoLists) {
       const { episode } = keyworkCheck(list.split("/").at(-1));
 
       const getTmdbEpisodeName = () => {
@@ -103,7 +103,8 @@ export class Rename {
       log("Uploading: " + name);
 
       taskLists.push(alist.fs.upload(list, uploadPath, true));
-    });
+      await taskLists[taskLists.length - 1]; // 等待上一个上传任务完成
+    }
 
     log("Upload Promise: ", await Promise.all(taskLists));
   }
