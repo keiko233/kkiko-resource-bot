@@ -12,13 +12,13 @@ import {
 } from "tmdb-js-node";
 import countries from "i18n-iso-countries";
 import tmdb from "../tmdb";
-import { writeFileSync } from "fs";
+import { copyFileSync, writeFileSync } from "fs";
 import { js2xml, Element } from "xml-js";
 import { downloadFileToBuffer } from "../buffer";
-import { formatNumber, getFileExtension } from "../text";
+import { formatNumber, getFileExtension, getFileExtensionV2 } from "../text";
 import { consola } from "../logger";
 import { createFolderRecursive } from "../file";
-import { generateTvName, getVideoFiles } from "./utils";
+import { generateTvName, getSubtitleFiles, getVideoFiles } from "./utils";
 import { keyworkCheck } from "../regex";
 import { makeStrm } from "./Strm";
 
@@ -678,18 +678,6 @@ export class Nfo {
           );
         }
       });
-
-      this.tmdbSeasonDetails.episodes.forEach((item) => {
-        if (item.episode_number == this.tmdbEpisodeDetails.episode_number) {
-          tasks.push(
-            this.writeFile(
-              item.still_path,
-              path,
-              filename.replace(/\.(mkv|mp4|mov)$/gi, "")
-            )
-          );
-        }
-      });
     };
 
     this.videoLists = getVideoFiles(this.data.savePath.substring(1));
@@ -726,6 +714,55 @@ export class Nfo {
       this.generateEpisodeNfo(episode, name);
 
       generateTask(name);
+
+      this.tmdbSeasonDetails.episodes.forEach((item) => {
+        if (item.episode_number == episode) {
+          tasks.push(
+            this.writeFile(
+              item.still_path,
+              path,
+              name.replace(/\.(mkv|mp4|mov)$/gi, "")
+            )
+          );
+        }
+      });
+    });
+
+    const subtitleLists = getSubtitleFiles(this.data.savePath.substring(1));
+
+    subtitleLists.forEach((subtitle) => {
+      const originName = subtitle.split("/").at(-1);
+
+      const { episode } = keyworkCheck(originName);
+
+      const getTmdbEpisodeName = () => {
+        let result: TVSeasonsGetDetailsEpisode;
+
+        this.tmdbSeasonDetails.episodes.forEach((item) => {
+          if (item.episode_number == episode) {
+            result = item;
+          }
+        });
+
+        return result.name;
+      };
+
+      const name = generateTvName(
+        this.tmdbDetails.name,
+        formatNumber(this.tmdbSeasonDetails.season_number),
+        formatNumber(episode),
+        getTmdbEpisodeName(),
+        getFileExtensionV2(originName).substring(1)
+      );
+
+      log(`copy&rename subtitle: ${name}`);
+
+      tasks.push(
+        copyFileSync(
+          subtitle,
+          `${this.generatePath}/Season ${this.tmdbSeasonDetails.season_number}/${name}`
+        )
+      );
     });
 
     return tasks;

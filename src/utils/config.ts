@@ -12,11 +12,18 @@ export interface Config {
     api_key: string;
     access_token: string;
   };
-  alist: {
+  uploadDrive: "alist" | "onedrive";
+  concurrentUpload: boolean;
+  alist?: {
     baseURL: string;
     username: string;
     password: string;
     rootPath: string;
+  };
+  onedrive?: {
+    token: string;
+    rootPath: string;
+    chunksToUpload: number;
   };
   users: number[];
   strm: {

@@ -10,11 +10,18 @@
     "api_key": "",
     "access_token": ""
   },
+  "uploadDrive": "alist",
+  "concurrentUpload": false,
   "alist": {
     "baseURL": "",
     "username": "",
-    "password": ".",
+    "password": "",
     "rootPath": ""
+  },
+  "onedrive": {
+    "token": "",
+    "rootPath": "",
+    "chunksToUpload": 128
   },
   "users": [
     114514

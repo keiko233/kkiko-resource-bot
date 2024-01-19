@@ -1,5 +1,6 @@
 import { copyFileSync } from "fs";
 import { traverseDirectory, alist as alistApi, config, consola } from ".";
+import { onedrive } from "./onedrive";
 
 export const uploadTmpDir = async (rootDir: string) => {
   const files = traverseDirectory(rootDir);
@@ -13,11 +14,20 @@ export const uploadTmpDir = async (rootDir: string) => {
 
     consola.info("[utils/upload]", file);
 
-    copyFileSync(file, `${config.strm.path}${config.alist.rootPath}/${uploadPath}`);
-
-    tasks.push(
-      alist.fs.upload(file, `${config.alist.rootPath}/${uploadPath}`, true)
+    copyFileSync(
+      file,
+      `${config.strm.path}${config.alist.rootPath}/${uploadPath}`
     );
+
+    if (config.uploadDrive == "alist") {
+      tasks.push(
+        alist.fs.upload(file, `${config.alist.rootPath}/${uploadPath}`, true)
+      );
+    } else {
+      tasks.push(
+        onedrive.file.upload(file, `${config.onedrive.rootPath}/${uploadPath}`)
+      );
+    }
   });
 
   await Promise.all(tasks);

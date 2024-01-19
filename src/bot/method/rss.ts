@@ -87,6 +87,7 @@ export const rss = async (ctx: CommandContext) => {
       name: extract.tmdbDetails.name,
       url,
       regex: JSON.stringify(rss),
+      latestAt: new Date(rss.at(0).pubDate),
     });
 
     if (result) {

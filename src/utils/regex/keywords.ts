@@ -136,7 +136,7 @@ const ani = (name: string) => {
     const nameMatch = name.match(/\[ANi\] (.*?) -/);
 
     if (nameMatch && nameMatch[1]) {
-      return nameMatch[1].replace(/第(\S+?)季/g, "")
+      return nameMatch[1].replace(/第(\S+?)季/g, "");
     } else {
       return "";
     }
@@ -179,6 +179,48 @@ const ani = (name: string) => {
   };
 };
 
+const kamigami = (name: string) => {
+  const getName = () => {
+    const nameMatch = name.match(/\[Kamigami\] (.*?) -/);
+
+    if (nameMatch && nameMatch[1]) {
+      return nameMatch[1];
+    } else {
+      return "";
+    }
+  };
+
+  const getEpisode = () => {
+    const result = name.match(/-\s+(\d+)/);
+
+    if (result && result[1]) {
+      return Number(result[1]);
+    } else {
+      return 1;
+    }
+  };
+
+  const getSeason = () => {
+    const seasonMatch = name.match(/Season\s+(\d+)|(\d+)rd|(\d+)nd/i);
+
+    if (seasonMatch) {
+      let season = seasonMatch[1] || seasonMatch[2] || seasonMatch[3];
+
+      if (season) {
+        return Number(season);
+      }
+    }
+
+    return 1;
+  };
+
+  return {
+    regexName: getName(),
+    season: getSeason(),
+    episode: getEpisode(),
+  };
+};
+
 export const keywords: Keywords.Lists = {
   sakurato: {
     keys: ["[Sakurato]", "Sakurato"],
@@ -195,5 +237,9 @@ export const keywords: Keywords.Lists = {
   ani: {
     keys: ["ANi"],
     type: ani,
+  },
+  kamigami: {
+    keys: ["[Kamigami]"],
+    type: kamigami,
   },
 };

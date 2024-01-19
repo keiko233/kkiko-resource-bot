@@ -1,4 +1,13 @@
-import { download, help, rss, myrss } from "./method";
+import {
+  download,
+  help,
+  rss,
+  myrss,
+  subrss,
+  query24h,
+  renameRss,
+  delRss,
+} from "./method";
 
 export const cmdMap = [
   {
@@ -20,5 +29,25 @@ export const cmdMap = [
   {
     cmd: "myrss",
     func: myrss,
+  },
+  {
+    cmd: "subrss",
+    func: subrss,
+  },
+  {
+    cmd: "24h",
+    func: query24h,
+  },
+  {
+    cmd: "query24h",
+    func: query24h,
+  },
+  {
+    cmd: "renamerss",
+    func: renameRss,
+  },
+  {
+    cmd: "delrss",
+    func: delRss,
   },
 ];

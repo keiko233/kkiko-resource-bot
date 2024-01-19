@@ -21,6 +21,7 @@ const toDownload = async (
   r: {
     requestUser: string;
     requestUserId: bigint;
+    subUserIds: string;
   }
 ) => {
   const buffer = await downloadFileToBuffer(item.url);
@@ -86,6 +87,21 @@ const toDownload = async (
         "any",
         message(newtask)
       );
+
+      if (newtask.status == "successfully-downloaded") {
+        if (r.subUserIds && r.subUserIds != "[]") {
+          const users: number[] = JSON.parse(r.subUserIds);
+          
+          consola.log(LOGTAG, "Send Update Message to subUserIds: ", users)
+
+          users.forEach(async (user) => {
+            await bot.telegram.sendMessage(user, array2text([
+              "订阅的番剧更新啦~",
+              `标题: ${item.title}`,
+            ]));
+          });
+        }
+      }
     }
 
     if (newtask.status == "complated") {

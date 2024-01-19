@@ -47,21 +47,23 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
     savePath: metaTorrent.savePath,
   });
 
-  const showStatus = async (lastProgress?: string) => {
+  const interval = setInterval(async () => {
     try {
+      const task = await getTaskById(id);
+
       const torrent = await qbittorrent.getTorrent(task.hash);
 
       const progress = (torrent.progress * 100).toFixed(2);
 
       if (torrent.progress < 1) {
-        if (progress != lastProgress) {
-          callback(
-            `下载进度: ${progress}% (${format.size(
-              torrent.totalDownloaded
-            )} / ${format.size(torrent.totalSize)})`
-          );
-        }
+        await callback(
+          `下载进度: ${progress}% (${format.size(
+            torrent.totalDownloaded
+          )} / ${format.size(torrent.totalSize)})`
+        );
       } else {
+        clearInterval(interval);
+
         const lastTask = await updateTaskById(task.id, {
           message: `下载完成 (${format.size(torrent.totalSize)})`,
           status: "successfully-downloaded",
@@ -77,7 +79,7 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
         const nfo = new Nfo();
         await nfo.run(lastTask, rename.tvName);
 
-        await qbittorrent.removeTorrent(lastTask.hash, true);
+        consola.log("uploadTmpDir");
 
         await uploadTmpDir(`tmp/task-${lastTask.id}`);
 
@@ -87,21 +89,11 @@ export const resourceSave = async (id: number, torrent: Buffer) => {
           status: "complated",
           message: "处理完成",
         });
+
+        await qbittorrent.removeTorrent(lastTask.hash, true);
       }
-
-      setTimeout(async () => {
-        await showStatus(progress);
-      }, 3000);
     } catch (err) {
-      log(err);
-
-      setTimeout(async () => {
-        await showStatus();
-      }, 3000);
+      throw new Error(err);
     }
-  };
-
-  setTimeout(async () => {
-    await showStatus();
   }, 3000);
 };

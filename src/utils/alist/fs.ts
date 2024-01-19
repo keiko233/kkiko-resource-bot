@@ -2,7 +2,6 @@ import { $Fetch } from "ofetch";
 import { useRequest, Response } from "./utils";
 import { createReadStream } from "fs";
 import mime from "mime";
-
 export class Fs {
   private request: $Fetch;
 

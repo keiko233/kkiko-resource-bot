@@ -10,6 +10,11 @@ export const help = (ctx: CommandContext) => {
     "/download 下载torrent",
     "/rss 添加rss订阅",
     "/myrss 查看我的订阅",
+    "/renamerss 重命名RSS",
+    "/delrss 删除RSS",
+    "/subrss 添加已有订阅",
+    "/query24h 查看24小时内更新的番剧",
+    "/24h 查看24小时内更新的番剧",
   ];
 
   ctx.reply(array2text(helpMessage));

@@ -37,6 +37,20 @@ export const getFileExtension = (filename: string): string => {
   return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 };
 
+export const getFileExtensionV2 = (filename: string): string => {
+  const parts = filename.split(".");
+  let extension = parts.pop() || "";
+
+  if (parts.length > 0) {
+    extension =
+      parts.length > 1
+        ? `.${parts.slice(-1).join(".")}.${extension}`
+        : `.${extension}`;
+  }
+
+  return extension;
+};
+
 export namespace Rss {
   export interface Channel {
     channel: {
@@ -135,3 +149,11 @@ export const rssRegex = (rss: Rss.Channel): Rss.RegexRss[] => {
     }
   }
 };
+
+export function paginate<T>(
+  array: T[],
+  pageSize: number,
+  pageNumber: number
+): T[] {
+  return array.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+}

@@ -6,17 +6,15 @@ import {
   TVSeasonsGetDetailsResponse,
 } from "tmdb-js-node";
 import {
-  array2text,
   config,
   consola,
-  createFolderRecursive,
   formatNumber,
   getFileExtension,
   alist as alistApi,
   keyworkCheck,
 } from "..";
-import { readdirSync, renameSync } from "fs";
 import { generateTvName, getVideoFiles } from "./utils";
+import { onedrive } from "../onedrive";
 
 const LOGTAG = "[regex/Rename]";
 
@@ -98,12 +96,30 @@ export class Rename {
         getFileExtension(list)
       );
 
-      const uploadPath = `${config.alist.rootPath}/${this.savePath}/${name}`;
-
       log("Uploading: " + name);
 
-      taskLists.push(alist.fs.upload(list, uploadPath, true));
-      await taskLists[taskLists.length - 1]; // 等待上一个上传任务完成
+      if (config.uploadDrive == "alist") {
+        taskLists.push(
+          alist.fs.upload(
+            list,
+            `${config.alist.rootPath}/${this.savePath}/${name}`,
+            true
+          )
+        );
+      } else {
+        taskLists.push(
+          onedrive.file.upload(
+            list,
+            `${config.onedrive.rootPath}/${this.savePath}/${name}`
+          )
+        );
+      }
+
+      if (!config.concurrentUpload) {
+        await taskLists[taskLists.length - 1];
+
+        log("Upload: ", name);
+      }
     }
 
     log("Upload Promise: ", await Promise.all(taskLists));

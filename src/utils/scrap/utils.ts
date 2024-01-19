@@ -17,7 +17,7 @@ export const generateTvName = (
       `${episodeName}.${fileExtension}`,
     ],
     "space"
-  );
+  ).replace(/\//g, "-");
 };
 
 export const getVideoFiles = (savePath: string) => {
@@ -34,4 +34,20 @@ export const getVideoFiles = (savePath: string) => {
   });
 
   return videoLists;
+};
+
+export const getSubtitleFiles = (savePath: string) => {
+  const result = traverseDirectory(savePath);
+
+  const lists: string[] = [];
+
+  result.forEach((item) => {
+    if (/\.ass$/.test(item)) {
+      if (!/(SPs|Menu)/i.test(item)) {
+        lists.push(item);
+      }
+    }
+  });
+
+  return lists;
 };
